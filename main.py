@@ -32,15 +32,15 @@ def download_file(filename, file_id, root):
     r = requests.Session()
     file = r.get(url, stream=True)
     cookies = file.cookies.items()
-    if 'warning' not in cookies[0][0]:
-        write_file(f"{root}/{filename}", file)
-
+    if len(cookies) > 0:
+        if 'warning' in cookies[0][0]:
+            soup = BeautifulSoup(file.content, 'html.parser')
+            url = soup.find(id="uc-download-link")
+            url = url.get('href')
+            url = f"{domain}{url}"
+            file = r.get(url, stream=True)
+            write_file(f"{root}/{filename}", file)
     else:
-        soup = BeautifulSoup(file.content, 'html.parser')
-        url = soup.find(id="uc-download-link")
-        url = url.get('href')
-        url = f"{domain}{url}"
-        file = r.get(url, stream=True)
         write_file(f"{root}/{filename}", file)
 
 
