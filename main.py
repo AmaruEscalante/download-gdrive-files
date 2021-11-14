@@ -38,8 +38,10 @@ def download_folder(parent, folder_name):
 
 
 def main():
-    folder_id = 'XXXXXXXXXXXXXXXXXXXXXXXXX'  # NOTE: folder must be publicly visible when using an API key.
-    download_folder(folder_id, 'downloads')
+    # NOTE: folder must be publicly visible when using an API key.
+    folder_id = input("Past the public GDrive folder ID to download...")
+    folder_name = input("Insert the folder name")
+    download_folder(folder_id, folder_name)
 
 
 if __name__ == "__main__":
