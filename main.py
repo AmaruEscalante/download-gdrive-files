@@ -3,6 +3,8 @@ import os
 from apiclient import discovery
 import requests
 import pathlib
+from tqdm import tqdm
+from bs4 import BeautifulSoup
 
 load_dotenv()
 API_KEY = os.getenv('DRIVE_KEY')
@@ -10,14 +12,36 @@ API_KEY = os.getenv('DRIVE_KEY')
 service = discovery.build('drive', 'v3', developerKey=API_KEY)
 
 
-def download_file(filename, file_id, root):
-    url = f"https://drive.google.com/uc?id={file_id}"
-    file = requests.get(url, stream=True)
-
-    with open(f"{root}/{filename}", "wb") as f:
+def write_file(filepath, file):
+    total = int(file.headers.get('content-length', 0))
+    with open(filepath, "wb") as f, tqdm(
+            desc=filepath,
+            total=total,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024) as bar:
         for chunk in file.iter_content(chunk_size=1024):
             if chunk:
-                f.write(chunk)
+                size = f.write(chunk)
+                bar.update(size)
+
+
+def download_file(filename, file_id, root):
+    domain = "https://drive.google.com"
+    url = f"{domain}/uc?id={file_id}"
+    r = requests.Session()
+    file = r.get(url, stream=True)
+    cookies = file.cookies.items()
+    if 'warning' not in cookies[0][0]:
+        write_file(f"{root}/{filename}", file)
+
+    else:
+        soup = BeautifulSoup(file.content, 'html.parser')
+        url = soup.find(id="uc-download-link")
+        url = url.get('href')
+        url = f"{domain}{url}"
+        file = r.get(url, stream=True)
+        write_file(f"{root}/{filename}", file)
 
 
 def download_folder(parent, folder_name):

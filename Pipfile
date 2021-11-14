@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 google-api-python-client = "*"
 python-dotenv = "*"
+beautifulsoup4 = "*"
+tqdm = "*"
 
 [dev-packages]
 
